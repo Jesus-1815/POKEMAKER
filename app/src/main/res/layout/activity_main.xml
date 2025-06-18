@@ -1,162 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- ConstraintLayout como el contenedor raíz para un diseño flexible. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+    android:background="#F0F0F0"
+    tools:context=".MainActivity"> <!-- Asegúrate que 'tools:context' apunte a tu MainActivity -->
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- EditText para la barra de búsqueda de Pokémon por nombre. -->
+    <EditText
+        android:id="@+id/etPokemonName"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:hint="Buscar Pokémon (ej. pikachu)"
+        android:inputType="textCapWords"
+        android:padding="12dp"
+        android:background="@drawable/rounded_edittext_background"
+        app:layout_constraintEnd_toStartOf="@+id/btnSearch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Título -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="PokeMaker - Prueba de Funcionalidad"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:textColor="@android:color/black" />
+    <!-- Botón para iniciar la búsqueda. -->
+    <Button
+        android:id="@+id/btnSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="Buscar"
+        android:padding="12dp"
+        android:backgroundTint="@color/design_default_color_primary"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/etPokemonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/etPokemonName" />
 
-        <!-- Input para nombre de Pokémon -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Nombre del Pokémon">
+    <!-- RecyclerView para mostrar la lista de Pokémon. -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPokemons"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etPokemonName"
+        tools:listitem="@layout/item_pokemon_card" /> <!-- Vista previa de los items -->
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextPokemonName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:imeOptions="actionSearch" />
+    <!-- ProgressBar para indicar el estado de carga. -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        </com.google.android.material.textfield.TextInputLayout>
+    <!-- Button para cargar Pokemones iniciales -->
+    <Button
+        android:id="@+id/btnLoadInitial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cargar Iniciales"
+        android:backgroundTint="@color/design_default_color_secondary"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/etPokemonName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone" tools:visibility="visible" /> <!-- Inicialmente gone, puedes hacerlo visible para probar -->
 
-        <!-- Botones de acción -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <Button
-                android:id="@+id/buttonSearch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Buscar"
-                android:layout_marginEnd="8dp"
-                style="@style/Widget.MaterialComponents.Button" />
-
-            <Button
-                android:id="@+id/buttonSearchMultiple"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Buscar Varios"
-                android:layout_marginStart="8dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <Button
-                android:id="@+id/buttonShowAll"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Mostrar Todos"
-                android:layout_marginEnd="8dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-            <Button
-                android:id="@+id/buttonClearAll"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Limpiar Todo"
-                android:layout_marginStart="8dp"
-                android:backgroundTint="@android:color/holo_red_light"
-                style="@style/Widget.MaterialComponents.Button" />
-
-        </LinearLayout>
-
-        <!-- Contador de Pokémon -->
-        <TextView
-            android:id="@+id/textViewCount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pokémon guardados: 0"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"
-            android:background="@android:color/darker_gray"
-            android:padding="8dp"
-            android:textColor="@android:color/white" />
-
-        <!-- Área de resultados -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Información del Pokémon:"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/textViewResult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Busca un Pokémon para ver su información aquí"
-            android:textSize="14sp"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp"
-            android:background="@android:color/background_light"
-            android:minHeight="120dp"
-            android:scrollbars="vertical"
-            android:maxLines="10" />
-
-        <!-- Lista de Pokémon -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pokémon Guardados:"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:background="@android:color/background_light"
-            android:padding="8dp"
-            tools:listitem="@android:layout/simple_list_item_1" />
-
-        <!-- Información adicional -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Funcionalidades de prueba:\n• Buscar: Busca un Pokémon por nombre\n• Buscar Varios: Busca Pikachu, Charizard, etc.\n• Mostrar Todos: Muestra lista de guardados\n• Limpiar Todo: Elimina todos los Pokémon\n• Toca un Pokémon de la lista para ver detalles"
-            android:textSize="12sp"
-            android:layout_marginTop="16dp"
-            android:padding="12dp"
-            android:background="@android:color/darker_gray"
-            android:textColor="@android:color/white" />
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
