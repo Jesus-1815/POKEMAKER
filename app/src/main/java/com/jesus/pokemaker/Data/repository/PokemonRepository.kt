@@ -1,137 +1,220 @@
-package com.jesus.pokemaker.Data.repository // Asegúrate de que el paquete sea correcto
+package com.jesus.pokemaker.Data.repository
 
 import androidx.lifecycle.LiveData
-import com.jesus.pokemaker.Data.api.PokeApiService // Importa tu servicio de API
-import com.jesus.pokemaker.Data.db.PokemonDao // Importa tu DAO de Room
-import com.jesus.pokemaker.Data.db.PokemonEntity // Importa tu entidad de Room
-import com.jesus.pokemaker.Data.model.* // Importa todas tus clases modelo de la API (Pokemon, Species, etc.)
+import com.jesus.pokemaker.Data.api.PokeApiService
+import com.jesus.pokemaker.Data.db.PokemonDao
+import com.jesus.pokemaker.Data.db.PokemonEntity
+import com.jesus.pokemaker.Data.model.Pokemon
+import com.jesus.pokemaker.Data.model.Type
+import com.jesus.pokemaker.Data.model.Stat
+import com.jesus.pokemaker.Data.model.Species
+import com.jesus.pokemaker.Data.model.PokemonSprites
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json // Importa Json para serialización/deserialización
-import kotlinx.serialization.decodeFromString // Para deserializar
+import kotlinx.serialization.decodeFromString
 
 /**
- * Repositorio de datos para la aplicación de Pokémon.
- * Actúa como una única fuente de verdad para los datos, abstrayendo si provienen de la red o de la base de datos local.
+ * Repositorio que maneja la lógica de acceso a datos para Pokémon.
+ * Actúa como una única fuente de verdad, coordinando entre la API y la base de datos local.
  *
- * @param apiService La interfaz de servicio de la API (Retrofit).
- * @param pokemonDao El Data Access Object de Room para operaciones de base de datos.
+ * @param apiService Servicio para realizar llamadas a la PokeAPI
+ * @param pokemonDao DAO para acceso a la base de datos local
  */
-class PokemonRepository(private val apiService: PokeApiService, private val pokemonDao: PokemonDao) {
+class PokemonRepository(
+    private val apiService: PokeApiService,
+    private val pokemonDao: PokemonDao
+) {
 
-    // Instancia de Json para serializar/deserializar objetos complejos a/desde String.
-    // Es la misma configuración que usas en RetrofitInstance.
-    private val json = Json { ignoreUnknownKeys = true }
+    // Configuración de JSON para serialización/deserialización
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     /**
-     * Obtiene un Pokémon por su nombre. Primero intenta obtenerlo de la red,
-     * lo guarda en la base de datos local y luego devuelve la entidad.
-     * Si no hay conexión o falla la API, puedes añadir lógica para buscarlo localmente.
+     * Busca un Pokémon en la API, lo convierte a PokemonEntity y lo guarda en la base de datos.
      *
-     * @param name El nombre del Pokémon a buscar.
-     * @return El PokemonEntity guardado o recuperado.
+     * @param name Nombre del Pokémon a buscar
+     * @return PokemonEntity guardado en la base de datos
+     * @throws Exception si hay error en la llamada a la API
      */
     suspend fun fetchAndSavePokemon(name: String): PokemonEntity {
-        // Lógica para obtener de la API:
-        // En un proyecto real, aquí agregarías un 'try-catch' y lógica de conectividad
-        // para decidir si llamar a la API o buscar directamente en la DB local.
-        // Por simplicidad, esta implementación primero intenta la red.
+        try {
+            // 1. Llamar a la API para obtener los datos del Pokémon
+            val apiPokemon = apiService.getPokemon(name.lowercase())
 
-        val apiPokemon = apiService.getPokemon(name)
+            // 2. Convertir los datos complejos a JSON strings
+            val typesJson = json.encodeToString(apiPokemon.types)
+            val statsJson = json.encodeToString(apiPokemon.stats)
 
-        // Serializar las listas complejas de la API a String (JSON) para Room
-        val typesJson = json.encodeToString(apiPokemon.types)
-        val statsJson = json.encodeToString(apiPokemon.stats)
+            // 3. Mapear de Pokemon (API) a PokemonEntity (Base de datos)
+            val pokemonEntity = PokemonEntity(
+                id = apiPokemon.id.toInt(),
+                name = apiPokemon.name,
+                imageUrl = apiPokemon.sprites.frontDefault,
+                types = typesJson,
+                stats = statsJson
+            )
 
-        // Crear una instancia de PokemonEntity a partir del objeto de la API
-        val pokemonEntity = PokemonEntity(
-            id = apiPokemon.id.toInt(), // Asegúrate de que el ID de la API (Long) se convierta a Int si es necesario
-            name = apiPokemon.name,
-            imageUrl = apiPokemon.sprites.frontDefault ?: "", // Usa el sprite frontal por defecto, o cadena vacía si es nulo
-            types = typesJson,
-            stats = statsJson
-        )
+            // 4. Guardar en la base de datos local
+            pokemonDao.insertPokemon(pokemonEntity)
 
-        // Insertar el Pokémon en la base de datos local
-        pokemonDao.insertPokemon(pokemonEntity)
+            // 5. Retornar la entidad guardada
+            return pokemonEntity
 
-        return pokemonEntity // Devolvemos la entidad guardada/actualizada
+        } catch (e: Exception) {
+            throw Exception("Error al obtener el Pokémon: ${e.message}")
+        }
     }
 
     /**
-     * Obtiene una especie de Pokémon por su nombre desde la API y la devuelve.
-     * (Nota: esta función no guarda en DB, es solo un ejemplo de cómo podrías usarla)
+     * Obtiene todos los Pokémon guardados localmente.
      *
-     * @param name El nombre de la especie a buscar.
-     * @return El objeto PokemonSpecies de la API.
+     * @return LiveData con la lista de todos los Pokémon locales
      */
-    suspend fun getPokemonSpeciesFromApi(name: String): PokemonSpecies {
-        return apiService.getSpecies(name)
+    fun getLocalPokemons(): LiveData<List<PokemonEntity>> {
+        return pokemonDao.getAllPokemons()
     }
 
     /**
-     * Obtiene una cadena de evolución por su ID desde la API y la devuelve.
+     * Obtiene un Pokémon específico de la base de datos local.
      *
-     * @param id El ID de la cadena de evolución.
-     * @return El objeto EvolutionChain de la API.
+     * @param name Nombre del Pokémon a buscar
+     * @return PokemonEntity si existe, null si no se encuentra
      */
-    suspend fun getEvolutionChainFromApi(id: Int): Evolution { // Evolution es el nombre de tu clase principal de EvolutionChain
-        return apiService.getEvolutionChain(id)
+    suspend fun getLocalPokemon(name: String): PokemonEntity? {
+        return pokemonDao.getPokemon(name.lowercase())
     }
 
     /**
-     * Obtiene información de un tipo por su ID desde la API y la devuelve.
+     * Verifica si un Pokémon existe en la base de datos local.
      *
-     * @param id El ID del tipo.
-     * @return El objeto TypeResponse de la API.
+     * @param name Nombre del Pokémon
+     * @return true si existe localmente, false si no
      */
-    suspend fun getTypeInfoFromApi(id: Int): TypeResponse {
-        return apiService.getTypeInfo(id)
+    suspend fun isPokemonSavedLocally(name: String): Boolean {
+        return getLocalPokemon(name) != null
     }
 
-
     /**
-     * Obtiene todos los Pokémon guardados localmente en la base de datos.
+     * Obtiene un Pokémon, primero buscando localmente y luego en la API si no existe.
      *
-     * @return LiveData de una lista de PokemonEntity.
+     * @param name Nombre del Pokémon
+     * @return PokemonEntity obtenido local o remotamente
      */
-    fun getLocalPokemons(): LiveData<List<PokemonEntity>> = pokemonDao.getAllPokemons()
+    suspend fun getPokemon(name: String): PokemonEntity {
+        // Primero buscar localmente
+        val localPokemon = getLocalPokemon(name)
+
+        return if (localPokemon != null) {
+            // Si existe localmente, devolverlo
+            localPokemon
+        } else {
+            // Si no existe localmente, buscarlo en la API y guardarlo
+            fetchAndSavePokemon(name)
+        }
+    }
 
     /**
-     * Obtiene un Pokémon específico de la base de datos local por su nombre.
+     * Obtiene el conteo total de Pokémon guardados.
      *
-     * @param name El nombre del Pokémon a buscar.
-     * @return El PokemonEntity encontrado localmente, o null.
+     * @return Número total de Pokémon en la base de datos
      */
-    suspend fun getLocalPokemon(name: String): PokemonEntity? = pokemonDao.getPokemon(name)
+    suspend fun getPokemonCount(): Int {
+        return pokemonDao.getPokemonCount()
+    }
 
     /**
-     * Función de utilidad para convertir un PokemonEntity (desde la DB) de nuevo a un objeto Pokemon (similar al de la API).
-     * Esto es útil si tu ViewModel o UI esperan el formato de la API.
+     * Convierte un PokemonEntity (base de datos) de vuelta a Pokemon (modelo de API).
+     * Útil cuando la UI necesita trabajar con el formato completo de la API.
+     *
+     * @param entity PokemonEntity de la base de datos
+     * @return Pokemon reconstruido con datos de la API
      */
     fun convertPokemonEntityToApiPokemon(entity: PokemonEntity): Pokemon {
-        // Deserializar las cadenas JSON a sus objetos originales
-        val typesList: List<Type> = json.decodeFromString(entity.types)
-        val statsList: List<Stat> = json.decodeFromString(entity.stats)
+        try {
+            // Deserializar los JSON strings de vuelta a objetos
+            val types = json.decodeFromString<List<Type>>(entity.types)
+            val stats = json.decodeFromString<List<Stat>>(entity.stats)
 
-        // Crear una instancia de Pokemon (la clase de tu modelo de la API)
-        // Nota: Tendrás que reconstruir también los objetos Sprites si la clase Pokemon
-        // los requiere. En este ejemplo, estamos usando una imagen simple para PokemonEntity.
-        // Si tu modelo Pokemon API tiene más campos de sprites que quieres mantener,
-        // necesitarías más lógica aquí o ajustar PokemonEntity.
-        val sprites = Sprites(frontDefault = entity.imageUrl) // Simplicado para este ejemplo
+            // Crear un objeto Species básico para los campos requeridos
+            val species = Species(
+                name = entity.name,
+                url = "https://pokeapi.co/api/v2/pokemon-species/${entity.id}/"
+            )
 
-        return Pokemon(
-            id = entity.id.toLong(), // Asegúrate de que el ID se convierta a Long si es necesario
-            name = entity.name,
-            height = 0, // Placeholder si no está en Entity, o agrega a Entity si es importante
-            weight = 0, // Placeholder
-            sprites = sprites,
-            types = typesList,
-            stats = statsList,
-            // Agrega aquí el resto de campos de Pokemon (API) si son necesarios
-            // Asegúrate de que tu modelo Pokemon (API) no tenga más campos obligatorios que no puedas llenar.
-            baseExperience = 0, cries = Cries("", ""), forms = emptyList(), gameIndices = emptyList(),
-            heldItems = emptyList(), isDefault = false, locationAreaEncounters = ""
-        )
+            // Crear sprites básicos
+            val sprites = PokemonSprites(
+                frontDefault = entity.imageUrl,
+                backDefault = "",
+                frontShiny = "",
+                backShiny = ""
+            )
+
+            // Reconstruir el objeto Pokemon
+            return Pokemon(
+                id = entity.id.toLong(),
+                name = entity.name,
+                height = 0L, // Valores por defecto para campos no guardados
+                weight = 0L,
+                baseExperience = 0L,
+                order = 0L,
+                isDefault = true,
+                locationAreaEncounters = "",
+                abilities = emptyList(), // Lista vacía para campos no guardados
+                cries = com.jesus.pokemaker.Data.model.Cries("", ""),
+                forms = listOf(species),
+                gameIndices = emptyList(),
+                heldItems = emptyList(),
+                moves = emptyList(),
+                pastAbilities = emptyList(),
+                pastTypes = kotlinx.serialization.json.JsonArray(emptyList()),
+                species = species,
+                sprites = sprites,
+                stats = stats,
+                types = types
+            )
+
+        } catch (e: Exception) {
+            throw Exception("Error al convertir PokemonEntity a Pokemon: ${e.message}")
+        }
+    }
+
+    /**
+     * Busca múltiples Pokémon y los guarda en la base de datos.
+     *
+     * @param pokemonNames Lista de nombres de Pokémon
+     * @return Lista de PokemonEntity guardados exitosamente
+     */
+    suspend fun fetchAndSaveMultiplePokemons(pokemonNames: List<String>): List<PokemonEntity> {
+        val savedPokemons = mutableListOf<PokemonEntity>()
+
+        pokemonNames.forEach { name ->
+            try {
+                val savedPokemon = fetchAndSavePokemon(name)
+                savedPokemons.add(savedPokemon)
+            } catch (e: Exception) {
+                // Log del error pero continúa con los demás Pokémon
+                println("Error al guardar $name: ${e.message}")
+            }
+        }
+
+        return savedPokemons
+    }
+
+    /**
+     * Elimina un Pokémon de la base de datos local.
+     *
+     * @param name Nombre del Pokémon a eliminar
+     */
+    suspend fun deleteLocalPokemon(name: String) {
+        pokemonDao.deletePokemonByName(name.lowercase())
+    }
+
+    /**
+     * Elimina todos los Pokémon de la base de datos.
+     */
+    suspend fun deleteAllPokemons() {
+        pokemonDao.deleteAllPokemons()
     }
 }
