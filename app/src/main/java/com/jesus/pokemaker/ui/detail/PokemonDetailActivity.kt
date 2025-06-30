@@ -1,7 +1,9 @@
-package com.jesus.pokemaker.ui.detail // Asegúrate de que el paquete sea correcto
+package com.jesus.pokemaker.ui.detail
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -10,8 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import coil.load
 import com.jesus.pokemaker.Data.model.Chain
 import com.jesus.pokemaker.Data.model.Evolution
+import com.jesus.pokemaker.Data.model.PokemonSpecies
 import com.jesus.pokemaker.Data.model.Stat
-import com.jesus.pokemaker.Data.model.Species // Asegúrate de importar Species si no está ya
 import com.jesus.pokemaker.Data.model.Type
 import com.jesus.pokemaker.R
 import com.jesus.pokemaker.ui.viewmodel.PokemonViewModel
@@ -19,8 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import android.util.Log // Importar Log para depuración
 
 class PokemonDetailActivity : AppCompatActivity() {
 
@@ -43,8 +43,11 @@ class PokemonDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pokemon_detail)
 
-        // Inicializar ViewModel
-        pokemonViewModel = ViewModelProvider(this).get(PokemonViewModel::class.java)
+        // Inicializar ViewModel - CORREGIDO: usando ViewModelProvider.AndroidViewModelFactory
+        pokemonViewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[PokemonViewModel::class.java]
 
         // Obtener referencias a las vistas por ID
         ivDetailPokemon = findViewById(R.id.ivDetailPokemon)
@@ -63,9 +66,9 @@ class PokemonDetailActivity : AppCompatActivity() {
         val pokemonTypesJson = intent.getStringExtra("pokemonTypes") ?: "[]"
         val pokemonStatsJson = intent.getStringExtra("pokemonStats") ?: "[]"
 
-        // --- Mostrar datos básicos del Pokémon ---
+        // Mostrar datos básicos del Pokémon
         tvDetailPokemonName.text = pokemonName.replaceFirstChar { it.uppercase() }
-        tvDetailPokemonId.text = "#%03d".format(pokemonId) // Formato como #025
+        tvDetailPokemonId.text = "#%03d".format(pokemonId)
 
         // Cargar imagen con Coil
         ivDetailPokemon.load(pokemonImageUrl) {
@@ -77,32 +80,34 @@ class PokemonDetailActivity : AppCompatActivity() {
         // Deserializar y mostrar tipos. También cambia el color del encabezado.
         try {
             val types: List<Type> = json.decodeFromString(pokemonTypesJson)
-            val typeNames = types.joinToString(separator = ", ") { it.type.name.replaceFirstChar { char -> char.uppercase() } }
+            val typeNames = types.joinToString(separator = ", ") { type ->
+                type.type.name.replaceFirstChar { char -> char.uppercase() }
+            }
             tvDetailPokemonTypes.text = "Tipos: $typeNames"
 
             // Cambiar color del CardView del encabezado basado en el primer tipo
             if (types.isNotEmpty()) {
                 val firstType = types.first().type.name
                 val color = when (firstType) {
-                    "grass" -> Color.parseColor("#7AC74C") // Verde
-                    "fire" -> Color.parseColor("#EE8130") // Naranja
-                    "water" -> Color.parseColor("#6390F0") // Azul
-                    "electric" -> Color.parseColor("#F7D02C") // Amarillo
-                    "psychic" -> Color.parseColor("#F95587") // Rosa
-                    "normal" -> Color.parseColor("#A8A77A") // Beige
-                    "fighting" -> Color.parseColor("#C22E28") // Rojo oscuro
-                    "flying" -> Color.parseColor("#A98FF3") // Morado claro
-                    "poison" -> Color.parseColor("#A33EA1") // Morado
-                    "ground" -> Color.parseColor("#E2BF65") // Marrón claro
-                    "rock" -> Color.parseColor("#B6A136") // Marrón
-                    "bug" -> Color.parseColor("#A6B91A") // Verde claro
-                    "ghost" -> Color.parseColor("#735797") // Morado grisáceo
-                    "steel" -> Color.parseColor("#B7B7CE") // Gris
-                    "dragon" -> Color.parseColor("#6F35FC") // Morado fuerte
-                    "dark" -> Color.parseColor("#705746") // Gris oscuro
-                    "fairy" -> Color.parseColor("#D685AD") // Rosa claro
-                    "ice" -> Color.parseColor("#96D9D6") // Celeste
-                    else -> Color.parseColor("#FFFFFF") // Blanco por defecto
+                    "grass" -> Color.parseColor("#7AC74C")
+                    "fire" -> Color.parseColor("#EE8130")
+                    "water" -> Color.parseColor("#6390F0")
+                    "electric" -> Color.parseColor("#F7D02C")
+                    "psychic" -> Color.parseColor("#F95587")
+                    "normal" -> Color.parseColor("#A8A77A")
+                    "fighting" -> Color.parseColor("#C22E28")
+                    "flying" -> Color.parseColor("#A98FF3")
+                    "poison" -> Color.parseColor("#A33EA1")
+                    "ground" -> Color.parseColor("#E2BF65")
+                    "rock" -> Color.parseColor("#B6A136")
+                    "bug" -> Color.parseColor("#A6B91A")
+                    "ghost" -> Color.parseColor("#735797")
+                    "steel" -> Color.parseColor("#B7B7CE")
+                    "dragon" -> Color.parseColor("#6F35FC")
+                    "dark" -> Color.parseColor("#705746")
+                    "fairy" -> Color.parseColor("#D685AD")
+                    "ice" -> Color.parseColor("#96D9D6")
+                    else -> Color.parseColor("#FFFFFF")
                 }
                 cardHeader.setCardBackgroundColor(color)
             }
@@ -114,26 +119,29 @@ class PokemonDetailActivity : AppCompatActivity() {
         // Deserializar y mostrar estadísticas
         try {
             val stats: List<Stat> = json.decodeFromString(pokemonStatsJson)
-            llStatsContainer.removeAllViews() // Limpia cualquier vista de ejemplo del layout
+            llStatsContainer.removeAllViews()
             for (stat in stats) {
-                addStatView(stat) // Añade una vista por cada estadística
+                addStatView(stat)
             }
         } catch (e: Exception) {
             llStatsContainer.removeAllViews()
-            val errorTextView = TextView(this).apply { text = "Error al cargar estadísticas." ; setTextColor(Color.RED) }
+            val errorTextView = TextView(this).apply {
+                text = "Error al cargar estadísticas."
+                setTextColor(Color.RED)
+            }
             llStatsContainer.addView(errorTextView)
             Log.e("PokemonDetail", "Error deserializando stats: ${e.message}", e)
         }
 
-        // --- Cargar datos adicionales (Descripción, Evolución) desde la API usando Coroutines ---
-        // Se ejecuta en CoroutineScope(Dispatchers.Main) para no bloquear el hilo principal y para tareas UI
+        // Cargar datos adicionales (Descripción, Evolución) desde la API usando Coroutines
         CoroutineScope(Dispatchers.Main).launch {
             // Obtener descripción de la especie
             try {
-                // Obtiene la especie del Pokémon por su nombre.
-                // Asegúrate que tu modelo PokemonSpecies tenga el campo 'flavorTextEntries'.
-                val species = pokemonViewModel.getSpeciesDetails(pokemonName.lowercase())
-                val description = species?.flavorTextEntries?.firstOrNull { it.language.name == "en" }?.flavorText?.replace("\n", " ") ?: "Descripción no disponible."
+                val species: PokemonSpecies? = pokemonViewModel.getSpeciesDetails(pokemonName.lowercase())
+                val description = species?.flavorTextEntries?.firstOrNull { entry ->
+                    entry.language.name == "en"
+                }?.flavorText?.replace("\n", " ") ?: "Descripción no disponible."
+
                 tvDescription.text = description
             } catch (e: Exception) {
                 tvDescription.text = "Descripción no disponible."
@@ -142,16 +150,15 @@ class PokemonDetailActivity : AppCompatActivity() {
 
             // Obtener cadena de evolución
             try {
-                val species = pokemonViewModel.getSpeciesDetails(pokemonName.lowercase())
-                val evolutionChainUrl = species?.evolutionChain?.url // URL de la cadena de evolución
+                val species: PokemonSpecies? = pokemonViewModel.getSpeciesDetails(pokemonName.lowercase())
+                val evolutionChainUrl = species?.evolutionChain?.url
 
                 if (evolutionChainUrl != null) {
-                    // Extraer el ID de la URL de la cadena de evolución (ej. de ".../evolution-chain/1/" obtener "1")
                     val chainId = evolutionChainUrl.split("/").dropLast(1).last().toIntOrNull()
 
                     if (chainId != null) {
-                        val evolutionChain = pokemonViewModel.getEvolutionChainDetails(chainId)
-                        displayEvolutionChain(evolutionChain) // Función para mostrar la cadena
+                        val evolutionChain: Evolution? = pokemonViewModel.getEvolutionChainDetails(chainId)
+                        displayEvolutionChain(evolutionChain)
                     } else {
                         tvEvolutionChain.text = "Cadena de evolución no disponible (ID no válido)."
                     }
@@ -162,7 +169,7 @@ class PokemonDetailActivity : AppCompatActivity() {
                 tvEvolutionChain.text = "Error al cargar cadena de evolución: ${e.message}"
                 Log.e("PokemonDetail", "Error obteniendo cadena de evolución: ${e.message}", e)
             }
-        }
+        } // CORREGIDO: Agregada la llave de cierre faltante
     }
 
     /**
@@ -182,22 +189,22 @@ class PokemonDetailActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f // Peso para distribuir el espacio
+                1f
             )
             text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}:"
-            textSize = 16sp
-                    setTextColor(Color.BLACK)
+            textSize = 16f
+            setTextColor(Color.BLACK)
         }
 
         val statValueTextView = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f // Peso para distribuir el espacio
+                1f
             )
             text = stat.baseStat.toString()
-            textSize = 16sp
-                    textStyle = android.graphics.Typeface.BOLD
+            textSize = 16f
+            typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.BLACK)
         }
 
@@ -219,7 +226,7 @@ class PokemonDetailActivity : AppCompatActivity() {
 
         // Función recursiva para construir la cadena
         fun appendEvolution(chainNode: Chain, level: Int) {
-            val prefix = "  ".repeat(level) // Indentación para las fases
+            val prefix = "  ".repeat(level)
             chainText.append("${prefix}Fase ${level + 1}: ${chainNode.species.name.replaceFirstChar { it.uppercase() }}\n")
 
             // Si hay evoluciones a esta fase, recorrerlas

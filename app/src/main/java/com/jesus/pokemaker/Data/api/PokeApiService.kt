@@ -1,5 +1,6 @@
 package com.jesus.pokemaker.Data.api
 
+import com.jesus.pokemaker.Data.model.Evolution
 import com.jesus.pokemaker.Data.model.Pokemon
 import com.jesus.pokemaker.Data.model.PokemonSpecies
 import com.jesus.pokemaker.Data.model.PokemonType
@@ -28,4 +29,9 @@ interface PokeApiService {
      */
     @GET("type/{name}")
     suspend fun getPokemonType(@Path("name") name: String): PokemonType
+    @GET("pokemon-species/{name}")
+    suspend fun getSpeciesDetails(@Path("name") name: String): PokemonSpecies
+
+    @GET("evolution-chain/{id}")
+    suspend fun getEvolutionChainDetails(@Path("id") id: Int): Evolution
 }

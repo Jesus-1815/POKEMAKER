@@ -1,25 +1,24 @@
-package com.jesus.pokemaker // Asegúrate de que el paquete sea correcto
+package com.jesus.pokemaker // Asegúrate de que este paquete sea correcto
 
-import android.content.Intent // Para iniciar nuevas actividades
-import android.os.Bundle // Para guardar y restaurar el estado de la actividad
-import android.view.View // Para manipular la visibilidad de las vistas
-import android.widget.Button // Importa Button
-import android.widget.EditText // Importa EditText
-import android.widget.ProgressBar // Importa ProgressBar
-import android.widget.Toast // Para mostrar mensajes cortos en pantalla
-import androidx.activity.viewModels // Para obtener una instancia del ViewModel de forma declarativa
-import androidx.appcompat.app.AppCompatActivity // Clase base para actividades de soporte
-import androidx.lifecycle.Observer // Para observar cambios en LiveData
-import androidx.recyclerview.widget.GridLayoutManager // Usaremos GridLayoutManager para la vista de cuadrícula
-import androidx.recyclerview.widget.RecyclerView // Importa RecyclerView
-import com.jesus.pokemaker.Data.db.PokemonEntity // Importa la entidad de Pokémon de la base de datos
-import com.jesus.pokemaker.ui.adapter.PokemonAdapter // Importa tu adaptador de Pokémon
-import com.jesus.pokemaker.ui.detail.PokemonDetailActivity // Importa la actividad de detalle, la crearemos en el siguiente paso
-import com.jesus.pokemaker.ui.viewmodel.PokemonViewModel // Importa tu ViewModel
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.Toast
+import androidx.activity.viewModels // ¡CORRECCIÓN APLICADA AQUÍ! Importación correcta para 'by viewModels()'
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.jesus.pokemaker.ui.adapter.PokemonAdapter
+import com.jesus.pokemaker.ui.detail.PokemonDetailActivity
+import com.jesus.pokemaker.ui.viewmodel.PokemonViewModel
 
 class MainActivity : AppCompatActivity() {
 
-    // Instancia del ViewModel, obtenida mediante 'viewModels()' para inyección automática.
+    // Instancia del ViewModel, obtenida mediante 'viewModels()'.
     private val pokemonViewModel: PokemonViewModel by viewModels()
 
     // Referencias a las vistas del layout activity_main.xml
@@ -29,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var btnLoadInitial: Button
 
-    // Adaptador para el RecyclerView. Le pasamos una lambda para manejar clics en los ítems.
+    // Adaptador para el RecyclerView.
     private lateinit var pokemonAdapter: PokemonAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,8 +103,7 @@ class MainActivity : AppCompatActivity() {
         // Carga inicial al empezar: Si la lista está vacía, intenta precargar
         pokemonViewModel.pokemonList.observe(this, Observer { pokemons ->
             if (pokemons.isEmpty() && pokemonViewModel.isLoading.value == false) {
-                // Descomenta la siguiente línea si quieres que cargue automáticamente al iniciar la app
-                // pokemonViewModel.loadInitialPokemons()
+                // pokemonViewModel.loadInitialPokemons() // Descomenta esta línea si quieres carga automática al iniciar
             }
         })
     }

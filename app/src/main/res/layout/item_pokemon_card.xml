@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- CardView como contenedor para cada elemento de Pokémon en el RecyclerView. -->
+<!-- ¡CORRECCIÓN APLICADA AQUÍ! Se añade xmlns:tools al CardView raíz. -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardPokemon"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -25,7 +27,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:contentDescription="Imagen del Pokémon"
-            tools:srcCompat="@drawable/ic_launcher_foreground" /> <!-- Herramienta de vista previa -->
+            tools:srcCompat="@drawable/ic_launcher_foreground" />
 
         <!-- TextView para mostrar el nombre del Pokémon. -->
         <TextView

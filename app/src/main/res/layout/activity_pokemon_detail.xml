@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F0F0"
+    tools:context=".ui.detail.PokemonDetailActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp">
+
+                <ImageView
+                    android:id="@+id/ivDetailPokemon"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:scaleType="fitCenter"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:contentDescription="Imagen del Pokémon en detalle"
+                    tools:srcCompat="@drawable/ic_launcher_foreground" />
+
+                <TextView
+                    android:id="@+id/tvDetailPokemonName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Nombre Pokémon"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivDetailPokemon"
+                    app:layout_constraintTop_toTopOf="@+id/ivDetailPokemon" />
+
+                <TextView
+                    android:id="@+id/tvDetailPokemonTypes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Tipos: Eléctrico, Volador"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/darker_gray"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivDetailPokemon"
+                    app:layout_constraintTop_toBottomOf="@+id/tvDetailPokemonName" />
+
+                <TextView
+                    android:id="@+id/tvDetailPokemonId"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="4dp"
+                    android:text="#025"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivDetailPokemon"
+                    app:layout_constraintTop_toBottomOf="@+id/tvDetailPokemonTypes" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardStats"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardHeader">
+
+            <LinearLayout
+                android:id="@+id/llStatsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estadísticas Base"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardStats">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Descripción"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Aquí va la descripción del Pokémon."
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardEvolution"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardDescription"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cadena de Evolución"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvEvolutionChain"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Aquí se mostrará la cadena de evolución."
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

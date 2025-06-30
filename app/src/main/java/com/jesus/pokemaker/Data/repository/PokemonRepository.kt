@@ -1,10 +1,13 @@
 package com.jesus.pokemaker.Data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.jesus.pokemaker.Data.api.PokeApiService
 import com.jesus.pokemaker.Data.db.PokemonDao
 import com.jesus.pokemaker.Data.db.PokemonEntity
+import com.jesus.pokemaker.Data.model.Evolution
 import com.jesus.pokemaker.Data.model.Pokemon
+import com.jesus.pokemaker.Data.model.PokemonSpecies
 import com.jesus.pokemaker.Data.model.Type
 import com.jesus.pokemaker.Data.model.Stat
 import com.jesus.pokemaker.Data.model.Species
@@ -216,5 +219,28 @@ class PokemonRepository(
      */
     suspend fun deleteAllPokemons() {
         pokemonDao.deleteAllPokemons()
+    }
+    /**
+     * Obtiene los detalles de la especie desde la API
+     */
+    suspend fun getSpeciesDetails(pokemonName: String): PokemonSpecies? {
+        return try {
+            apiService.getSpeciesDetails(pokemonName)
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error en getSpeciesDetails para '$pokemonName': ${e.message}", e)
+            throw e
+        }
+    }
+
+    /**
+     * Obtiene los detalles de la cadena de evolución desde la API
+     */
+    suspend fun getEvolutionChainDetails(chainId: Int): Evolution? {
+        return try {
+            apiService.getEvolutionChainDetails(chainId)
+        } catch (e: Exception) {
+            Log.e("PokemonRepository", "Error en getEvolutionChainDetails para ID '$chainId': ${e.message}", e)
+            throw e
+        }
     }
 }

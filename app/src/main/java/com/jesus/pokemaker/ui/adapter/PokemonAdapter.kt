@@ -1,4 +1,4 @@
-package com.jesus.pokemaker.ui.adapter // Asegúrate de que el paquete sea correcto
+package com.jesus.pokemaker.ui.adapter // Asegúrate de que este paquete sea correcto
 
 import android.graphics.Color // Para manejar colores, específicamente para los tipos de Pokémon
 import android.view.LayoutInflater // Para inflar los layouts XML
@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView // Clase base para el adaptador
 import coil.load // Extensión de Coil para cargar imágenes desde URL
 import com.jesus.pokemaker.Data.db.PokemonEntity // Importa tu entidad de Pokémon de la base de datos
 import com.jesus.pokemaker.Data.model.Type // Importa el modelo Type de tu API para deserializar
-import com.jesus.pokemaker.R // Importa R para acceder a recursos como IDs de vistas
+import com.jesus.pokemaker.R // Importa R para acceder a recursos como IDs de vistas. ¡CRUCIAL!
 import kotlinx.serialization.decodeFromString // Para deserializar JSON a objetos Kotlin
 import kotlinx.serialization.json.Json // Para la instancia de Json para deserializar
 
@@ -28,7 +28,6 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
     private var pokemonList: List<PokemonEntity> = emptyList()
 
     // Instancia de Json para deserializar la cadena JSON de tipos.
-    // Misma configuración que en Repositorio y RetrofitInstance.
     private val json = Json { ignoreUnknownKeys = true }
 
     /**
@@ -36,10 +35,11 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
      * Contiene las vistas del layout 'item_pokemon_card.xml'.
      */
     inner class PokemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardPokemon: CardView = itemView.findViewById(R.id.cardPokemon) // CardView principal
-        val ivPokemon: ImageView = itemView.findViewById(R.id.ivPokemon) // ImageView para la imagen del Pokémon
-        val tvPokemonName: TextView = itemView.findViewById(R.id.tvPokemonName) // TextView para el nombre
-        val tvPokemonTypes: TextView = itemView.findViewById(R.id.tvPokemonTypes) // TextView para los tipos
+        // Asegúrate de que estos IDs existan y coincidan en item_pokemon_card.xml
+        val cardPokemon: CardView = itemView.findViewById(R.id.cardPokemon)
+        val ivPokemon: ImageView = itemView.findViewById(R.id.ivPokemon)
+        val tvPokemonName: TextView = itemView.findViewById(R.id.tvPokemonName)
+        val tvPokemonTypes: TextView = itemView.findViewById(R.id.tvPokemonTypes)
     }
 
     /**
@@ -48,7 +48,7 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokemonViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_pokemon_card, parent, false) // Infla el layout del item
+            .inflate(R.layout.item_pokemon_card, parent, false) // Asegúrate que item_pokemon_card.xml exista
         return PokemonViewHolder(view)
     }
 
@@ -60,11 +60,10 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
         val pokemon = pokemonList[position] // Obtiene el Pokémon actual de la lista
 
         // Cargar la imagen del Pokémon usando Coil.
-        // Maneja automáticamente la descarga, caché y visualización.
         holder.ivPokemon.load(pokemon.imageUrl) {
-            crossfade(true) // Efecto de fundido al cargar la imagen
-            placeholder(android.R.drawable.sym_def_app_icon) // Imagen de marcador de posición mientras carga
-            error(android.R.drawable.ic_menu_close_clear_cancel) // Imagen si hay un error al cargar
+            crossfade(true)
+            placeholder(android.R.drawable.sym_def_app_icon)
+            error(android.R.drawable.ic_menu_close_clear_cancel)
         }
 
         // Mostrar el nombre del Pokémon (primera letra en mayúscula).
@@ -72,50 +71,49 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
 
         // Deserializar y mostrar los tipos del Pokémon.
         try {
-            val types: List<Type> = json.decodeFromString(pokemon.types) // Convierte JSON String a List<Type>
-            val typeNames = types.joinToString(separator = ", ") { it.type.name.replaceFirstChar { char -> char.uppercase() } } // Une los nombres de tipo con comas
+            val types: List<Type> = json.decodeFromString(pokemon.types)
+            val typeNames = types.joinToString(separator = ", ") { it.type.name.replaceFirstChar { char -> char.uppercase() } }
             holder.tvPokemonTypes.text = "Tipos: $typeNames"
         } catch (e: Exception) {
-            // Manejo de error si la deserialización falla (ej. JSON mal formado).
             holder.tvPokemonTypes.text = "Tipos: Error al cargar"
-            e.printStackTrace() // Imprime el stack trace para depuración
+            e.printStackTrace()
         }
 
         // Establecer un listener de clic en la CardView.
         holder.cardPokemon.setOnClickListener {
-            onItemClick(pokemon) // Llama al callback cuando se hace clic en el Pokémon
+            onItemClick(pokemon)
         }
 
-        // Opcional: Cambiar el color de fondo de la tarjeta basado en el primer tipo (ejemplo básico)
+        // Opcional: Cambiar el color de fondo de la tarjeta basado en el primer tipo
         try {
             val types: List<Type> = json.decodeFromString(pokemon.types)
             if (types.isNotEmpty()) {
                 val firstType = types.first().type.name
                 val color = when (firstType) {
-                    "grass" -> Color.parseColor("#7AC74C") // Verde
-                    "fire" -> Color.parseColor("#EE8130") // Naranja
-                    "water" -> Color.parseColor("#6390F0") // Azul
-                    "electric" -> Color.parseColor("#F7D02C") // Amarillo
-                    "psychic" -> Color.parseColor("#F95587") // Rosa
-                    "normal" -> Color.parseColor("#A8A77A") // Beige
-                    "fighting" -> Color.parseColor("#C22E28") // Rojo oscuro
-                    "flying" -> Color.parseColor("#A98FF3") // Morado claro
-                    "poison" -> Color.parseColor("#A33EA1") // Morado
-                    "ground" -> Color.parseColor("#E2BF65") // Marrón claro
-                    "rock" -> Color.parseColor("#B6A136") // Marrón
-                    "bug" -> Color.parseColor("#A6B91A") // Verde claro
-                    "ghost" -> Color.parseColor("#735797") // Morado grisáceo
-                    "steel" -> Color.parseColor("#B7B7CE") // Gris
-                    "dragon" -> Color.parseColor("#6F35FC") // Morado fuerte
-                    "dark" -> Color.parseColor("#705746") // Gris oscuro
-                    "fairy" -> Color.parseColor("#D685AD") // Rosa claro
-                    "ice" -> Color.parseColor("#96D9D6") // Celeste
-                    else -> Color.WHITE // Por defecto
+                    "grass" -> Color.parseColor("#7AC74C")
+                    "fire" -> Color.parseColor("#EE8130")
+                    "water" -> Color.parseColor("#6390F0")
+                    "electric" -> Color.parseColor("#F7D02C")
+                    "psychic" -> Color.parseColor("#F95587")
+                    "normal" -> Color.parseColor("#A8A77A")
+                    "fighting" -> Color.parseColor("#C22E28")
+                    "flying" -> Color.parseColor("#A98FF3")
+                    "poison" -> Color.parseColor("#A33EA1")
+                    "ground" -> Color.parseColor("#E2BF65")
+                    "rock" -> Color.parseColor("#B6A136")
+                    "bug" -> Color.parseColor("#A6B91A")
+                    "ghost" -> Color.parseColor("#735797")
+                    "steel" -> Color.parseColor("#B7B7CE")
+                    "dragon" -> Color.parseColor("#6F35FC")
+                    "dark" -> Color.parseColor("#705746")
+                    "fairy" -> Color.parseColor("#D685AD")
+                    "ice" -> Color.parseColor("#96D9D6")
+                    else -> Color.WHITE
                 }
                 holder.cardPokemon.setCardBackgroundColor(color)
             }
         } catch (e: Exception) {
-            // Ignorar errores de color, usar el color por defecto del CardView
+            // Ignorar errores de color
         }
     }
 
@@ -126,11 +124,9 @@ class PokemonAdapter(private val onItemClick: (PokemonEntity) -> Unit) :
 
     /**
      * Actualiza la lista de Pokémon en el adaptador y notifica al RecyclerView.
-     *
-     * @param newList La nueva lista de PokemonEntity a mostrar.
      */
     fun submitList(newList: List<PokemonEntity>) {
         pokemonList = newList
-        notifyDataSetChanged() // Notifica al RecyclerView que los datos han cambiado
+        notifyDataSetChanged()
     }
 }
